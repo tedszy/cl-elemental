@@ -1,9 +1,11 @@
-# cl-elemental
-### _Your Name <your.name@example.com>_
+# CL-ELEMENTAL
 
-This is a project to do ... something.
+## Common Lisp computer science.
 
-## License
+Clone this repo to ```~/.quicklisp/local-projects``` then do
 
-Specify license here
+```common-lisp (ql:register-local-projects)```
+
+```common-lisp (ql:quickload :cl-elemental)```
+
 
