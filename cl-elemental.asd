@@ -8,4 +8,5 @@
   :serial t
   :depends-on (#:fiveam)
   :components ((:file "package")
-               (:file "cl-elemental")))
+               (:file "cl-elemental")
+	       (:file "prime-gaps")))
