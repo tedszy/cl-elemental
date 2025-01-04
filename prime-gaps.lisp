@@ -18,7 +18,7 @@
 ;;
 ;; (make-prime-sieve 100) ==> 101 elements covering 9 and [1,100].
 
-(defun make-prime-sieve (upper-limit)
+(defun make-prime-sieve (&optional (upper-limit 100000))
   (let ((sieve (make-array (1+ upper-limit)
 			   :initial-element 1
 			   :element-type 'bit)))
