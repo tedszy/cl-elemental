@@ -1,5 +1,5 @@
 
-(in-package :primegaps)
+(in-package :prime-gaps)
 
 (defun make-prime-sieve (limit)
   (let ((sieve (make-array (1+ limit)
