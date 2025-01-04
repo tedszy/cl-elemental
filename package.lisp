@@ -5,6 +5,4 @@
 
 (defpackage #:prime-gaps
   (:use #:cl)
-  (:export #:make-index-sieve
-	   #:make-prime-sieve
-	   #:prime-sieve-suite))
+  (:export #:make-prime-sieve))
