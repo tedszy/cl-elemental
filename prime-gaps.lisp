@@ -34,20 +34,26 @@
 
 ;; Tests.
 
-(fiveam:def-suite prime-sieve-suite
+(fiveam:def-suite prime-sieve-test-suite
   :description "Prime sieve testing.")
 
-(fiveam:in-suite prime-sieve-suite)
+(fiveam:in-suite prime-sieve-test-suite)
 
-(fiveam:def-test test-limits ()
+(fiveam:def-test check-limits ()
   (let ((sieve (make-prime-sieve 100)))
     (fiveam:is (= 101 (length sieve)))))
 
-(fiveam:def-test test-primes-in-ranges ()
+(fiveam:def-test check-indivitual-primes ()
+  (let ((sieve (make-prime-sieve 1000)))
+    (fiveam:is (= 1 (aref sieve 641)))
+    (fiveam:is (= 0 (aref sieve 707)))))
+
+(fiveam:def-test check-primes-in-ranges ()
   (fiveam:is (= 25 (count 1 (make-prime-sieve 100))))
   (fiveam:is (= 26 (count 1 (make-prime-sieve 101))))
   (fiveam:is (= 27 (count 1 (make-prime-sieve 103))))
   (fiveam:is (= 168 (count 1 (make-prime-sieve 1000))))
   (fiveam:is (= 169 (count 1 (make-prime-sieve 1009)))))
 
-
+(defun do-prime-sieve-tests ()
+  (fiveam:run! 'prime-sieve-test-suite))
