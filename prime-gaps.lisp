@@ -1,6 +1,7 @@
 (in-package :prime-gaps)
 
-(setf fiveam:*run-test-when-defined* t)
+;; Set this to t if you want the tests to run on compile/load.
+(setf fiveam:*run-test-when-defined* nil)
 
 ;; WHen using make-array with element-type bit, SBCL will
 ;; create a bitvector. This is a great savings of space.
@@ -55,5 +56,10 @@
   (fiveam:is (= 168 (count 1 (make-prime-sieve 1000))))
   (fiveam:is (= 169 (count 1 (make-prime-sieve 1009)))))
 
-(defun do-prime-sieve-tests ()
+;; Usage:
+;; (ql:quickload :cl-elemental)
+;; (primegaps:do-prime-gaps-tests)
+(defun do-prime-gaps-tests ()
   (fiveam:run! 'prime-sieve-test-suite))
+
+
