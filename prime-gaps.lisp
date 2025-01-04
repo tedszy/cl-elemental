@@ -3,21 +3,25 @@
 ;; Set this to t if you want the tests to run on compile/load.
 (setf fiveam:*run-test-when-defined* nil)
 
-;; WHen using make-array with element-type bit, SBCL will
-;; create a bitvector. This is a great savings of space.
-;; Sieves going from up to a limit 3 billion are now easy.
+;; WHen using make-array with element-type bit, SBCL will create
+;; a bitvector. This is a great saving of space. Sieves going to
+;; an upper-limit of 3 billion are easy now. Bit 0 means composite
+;; and bit 1 means prime.
+;;
+;; All sieve elements are initially marked with bit 1 (prime).
+;;
 ;; 
-;; 0 and 1 are not prime so they are marked with bit 0
-;; immediately after make-array.
+;; 0 and 1 are not prime so they are marked with bit 0 immediately
+;; after make-array.
 ;;
-;; Prime-sieve upper-limit defaults to something reasonably
-;; fast: 100,000.
+;; Prime-sieve upper-limit defaults to something fast: 100,000.
 ;;
-;; upper-limit of 1000 means the prime sieve covers the
-;; interval [1,1000] precisely, including both 1 and 1000]
-;; This means that...
+;; upper-limit of 1000 means the prime sieve covers the interval
+;; [1,1000] precisely, including both 1 and 1000.
 ;;
-;; (make-prime-sieve 100) ==> 101 elements covering 9 and [1,100].
+;;This means that...
+;;
+;; (make-prime-sieve 1000) ==> 1001 elements: 0 and [1,1000] inclusive.
 
 (defun make-prime-sieve (&optional (upper-limit 100000))
   (let ((sieve (make-array (1+ upper-limit)
