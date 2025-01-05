@@ -6,8 +6,8 @@
 (defun set-p (my-list)
   "Does the given list represent a set? It does if it has no duplicates."
   (let ((my-list-sorted (sort (copy-list my-list) #'<)))
-    (= (length my-list-sorted)
-       (length (delete-duplicates my-list-sorted)))))
+    (alexandria:length= my-list-sorted
+			(delete-duplicates my-list-sorted))))
 
 (defun divisors (my-number)
   "Find all divisors of an integer."
