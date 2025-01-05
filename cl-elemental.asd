@@ -6,7 +6,8 @@
   :license  "Specify license here"
   :version "0.0.1"
   :serial t
-  :depends-on (#:fiveam)
+  :depends-on (#:fiveam #:alexandria)
   :components ((:file "package")
                (:file "cl-elemental")
-	       (:file "prime-gaps")))
+	       (:file "prime-gaps")
+	       (:file "multiplicative-groups")))
