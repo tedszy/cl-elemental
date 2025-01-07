@@ -16,6 +16,9 @@
 ;; ideas of group theory.
 ;;
 ;; For example we can use Z/nZ* groups to illustrage Lagrange's theorem.
+;;
+;; For convenience/comparison we add ability to create
+;; and work with (Z/nZ, modn+) groups as well. 
 
 (declaim (optimize (debug 3)))
 ;; (declaim (optimize (speed 3)))
@@ -45,15 +48,19 @@
   "Reduced residues mod n, coprime to n, i.e., multiplicative residue group mod n."
   (remove-if-not #'(lambda (k) (= 1 (gcd k n))) (z/nz-residues n)))
 
-(defun mod-binary-op (n)
+(defun mod-binary-op-* (n)
   "Create the binary operation (x * y) mod n."
   (lambda (x y) (mod (* x y) n)))
 
-(defun cayley-table (set op*)
+(defun mod-binary-op-+ (n)
+  "Create binary operation (x + y) mod n."
+  (lambda (x y) (mod (+ x y) n)))
+
+(defun cayley-table (set op)
   "Computes Cayley table for the set with binary operation op*."
   (let ((table (loop for x in set
 		     collecting (loop for y in set
-				      collect (funcall op* x y)))))
+				      collect (funcall op x y)))))
     table))
 
 (defun display-table (table &key (width 5))
@@ -64,7 +71,13 @@
 
 (defun z/nz*-cayley-table (n)
   "Convenience function: get the Cayley table of Z/nZ* immediately."
-  (cayley-table (z/nz*-residues n) (mod-binary-op n)))
+  (cayley-table (z/nz*-residues n) (mod-binary-op-* n)))
+
+(defun z/nz-cayley-table (n)
+  "Convenience function: get the Cayley table of Z/nZ immediately."
+  (cayley-table (z/nz-residues n) (mod-binary-op-+ n)))
+
+
 
 ;; We build a nice interface for interactive use with CLOS.
 ;; An MGROOP instance is an object with a set of elements
@@ -87,7 +100,7 @@
   "Get the modulus and create a binary operation with it."
   (with-slots (modulus binary-op)
       obj
-    (setf binary-op (mod-binary-op modulus))))
+    (setf binary-op (mod-binary-op-* modulus))))
 
 (defmethod print-object ((obj mgroup) stream)
   (print-unreadable-object (obj stream :type nil)
@@ -211,13 +224,18 @@ from the set of elements. Return a list of them."
   (5am:is (equal '(1 2 4 5 7 8) (z/nz*-residues 9))))
 
 (5am:def-test group-mod-binary-op ()
-  (let ((mod7* (mod-binary-op 7))
-	(mod15* (mod-binary-op 15)))
-    (5am:is (= 2 (funcall mod7* 199 101)))
-    (5am:is (= 14 (funcall mod15* 199 101)))))
+  (let ((mod7* (mod-binary-op-* 7))
+	(mod15* (mod-binary-op-* 15))
+	(mod7+ (mod-binary-op-+ 7))
+	(mod15+ (mod-binary-op-+ 15))
+	(x 199) (y 101))
+    (5am:is (= 2 (funcall mod7* x y)))
+    (5am:is (= 14 (funcall mod15* x y)))
+    (5am:is (= 6 (funcall mod7+ x y)))
+    (5am:is (= 0 (funcall mod15+ x y)))))
 
 (5am:def-test is-it-a-group? ()
-  (let ((op (mod-binary-op 9)))
+  (let ((op (mod-binary-op-* 9)))
     (5am:is (has-1-p '(1 2 3 4)))
     (5am:is (not (has-1-p '(2 3 4))))
     (5am:is (has-closure-p '(1 2 4 5 7 8) op))
