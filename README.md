@@ -11,7 +11,7 @@ Clone this repo to `~/.quicklisp/local-projects' then do
 
 ### Integer groups
 
-Do ```(in-package :integer-groups)``` and then use it interactively..
+Do ```(in-package :integer-groups)``` and then use it interactively.
 Create Z/nZ additive groups and (Z/nZ)* multiplicative groups.
 
 ```common-lisp
@@ -47,7 +47,7 @@ INTEGER-GROUPS> (print-cayley-table mg :width 3)
  17 13 11  7  5  1
 INTEGER-GROUPS> 
 ```
-Find subgroups: 
+Find subgroups of length k: 
 
 ```common-lisp
 INTEGER-GROUPS> (find-subgroups ag 5)
