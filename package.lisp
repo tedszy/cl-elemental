@@ -8,5 +8,5 @@
   (:export #:make-prime-sieve
 	   #:do-prime-gaps-tests))
 
-(defpackage #:mgroups
+(defpackage #:integer-groups
   (:use #:cl))

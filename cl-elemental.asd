@@ -10,4 +10,4 @@
   :components ((:file "package")
                (:file "cl-elemental")
 	       (:file "prime-gaps")
-	       (:file "multiplicative-groups")))
+	       (:file "integer-groups")))

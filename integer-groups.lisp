@@ -1,4 +1,4 @@
-(in-package :mgroups)
+(in-package :integer-groups)
 
 ;; This package is for doing simple computations on small
 ;; integer residue groups mod n (additive or multiplicative.)
@@ -204,10 +204,10 @@ multiplicative residues group mod n."
 
 ;; Tests ==================================================================
 
-(5am:def-suite zgroups-test-suite
+(5am:def-suite integer-groups-test-suite
   :description "Check how well multiplicative group theory functions work.")
 
-(5am:in-suite zgroups-test-suite)
+(5am:in-suite integer-groups-test-suite)
 
 (5am:def-test check-set-p ()
   (5am:is (set-p '(1 2 3 4)))
@@ -236,5 +236,5 @@ multiplicative residues group mod n."
 
 ;; Just run this to run the tests.
 
-(defun do-zgroups-tests ()
-  (5am:run! 'zgroups-test-suite))
+(defun do-integer-groups-tests ()
+  (5am:run! 'integer-groups-test-suite))
