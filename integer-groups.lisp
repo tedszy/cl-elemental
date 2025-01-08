@@ -1,26 +1,41 @@
 (in-package :integer-groups)
 
-;; This package is for doing simple computations on small
-;; integer residue groups mod n (additive or multiplicative.)
+;; This package is for doing simple calculations with groups
 ;;
-;; A multiplicative resudie group mod n is denoted by Z/nZ*.
-;; Take all the reduced residues mod n and strike out the
-;; ones not coprime to n.
+;; Z/nZ and (Z/nZ)*
 ;;
-;; mod 9:
+;; Z/nZ is the additive integer group mod n. For example,
+;; when n = 10 we have the elements
 ;;
-;; 1, 2, 3, 4, 5, 6, 7, 8 ==> 1, 2, 4, 5, 7, 8
+;; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 ;;
-;; The result, along with the binary operation of x*y mod n
-;; forms an interesting abelian group that is good for illustrating
-;; ideas of group theory.
+;; with binary operation + mod 10 and identity 1. This forms a group.
 ;;
-;; For example we can use Z/nZ* groups to illustrage Lagrange's theorem.
+;; However it's not a group under * mod 10. That's because
+;; some elements do not have inverses. To make a group out
+;; of them, eliminate the ones not coprime to n. Note that
+;; gcd(0,n) = n so 0 is eliminated. We are left with
 ;;
-;; Additive Z/nZ...
+;; 1, 3, 7, 9.
 ;;
-;; (to do) ...  docs, comments.
+;; With binary operation * mod 10 and identity 1, this forms
+;; a group called (Z/10Z)*.
 ;;
+;; This package provides classes ZGROUP, AGROUP and MGROUP.
+;; ZGROUP is the base class for integer groups so it's not
+;; intended to be used directly.
+;;
+;; Instances of AGROUP and MGROP are the Z/nZ and (Z/nZ)*.
+;; Create them using make-agroup and make-mgroup.
+;;
+;; Examine cayley tables by calling print-cayley-table on
+;; your group instances.
+;;
+;; You can find subgroups of order k with find-subgroups.
+;; This is a primitive brute-force method that examines
+;; all combinations of length k from the set of elements
+;; of the group. Nevertheless it works fine for (very) small
+;; groups.
 
 (declaim (optimize (debug 3)))
 ;; (declaim (optimize (speed 3)))
@@ -89,22 +104,18 @@ multiplicative residues group mod n."
    (id :initarg :id :accessor id)
    (order :initarg :order :accessor order)
    (cayley-table :initarg :cayley-table :accessor cayley-table))
-  (:documentation "Class that can hold an integer group."))
-
-;; (defmethod initialize-instance :after ((zg zgroup) &key)
-;;   "Create the Cayley-table and find the order."
-;;   (with-slots (binary-op elements cayley-table order)
-;;       zg
-;;     (setf cayley-table (make-cayley-table elements binary-op))
-;;     (setf order (length elements))))
+  (:documentation "Base class forinteger groups."))
 
 (defclass agroup (zgroup)
-  ((modulus :initarg :modulus :accessor modulus)))
+  ((modulus :initarg :modulus :accessor modulus))
+  (:documentation "Class representing Z/nZ additive residue groups mod n."))
 
 (defclass mgroup (zgroup)
-  ((modulus :initarg :modulus :accessor modulus)))
+  ((modulus :initarg :modulus :accessor modulus))
+  (:documentation "Class representing (Z/nZ)* multiplicative groups mod n."))
 
 (defun make-zgroup (elements binary-op id &key (binary-op-label "@"))
+  "Constructor for base class: used in creating subgroups."
   (make-instance 'zgroup :binary-op binary-op
 			 :elements elements
 			 :id id
@@ -113,26 +124,28 @@ multiplicative residues group mod n."
 			 :order (length elements)))
 
 (defun make-agroup (n)
+  "Constructor for Z/nZ groups."
   (let ((elements (z/nz-residues n))
 	(op (mod-binary-op-+ n)))
     (make-instance 'agroup :binary-op op
-			    :elements elements
-			    :id 0
-			    :modulus n
-			    :order (length elements)
-			    :cayley-table (make-cayley-table elements op)
-			    :binary-op-label (format nil "MOD+~a" n))))
+			   :elements elements
+			   :id 0
+			   :modulus n
+			   :order (length elements)
+			   :cayley-table (make-cayley-table elements op)
+			   :binary-op-label (format nil "MOD+~a" n))))
 
 (defun make-mgroup (n)
+  "Constructor for (Z/nZ)* groups."
   (let ((elements (z/nz*-residues n))
 	(op (mod-binary-op-* n)))
     (make-instance 'mgroup :binary-op op
-			    :elements elements
-			    :id 1
-			    :modulus n
-			    :order (length elements)
-			    :cayley-table (make-cayley-table elements op)
-			    :binary-op-label (format nil "MOD*~a" n))))
+			   :elements elements
+			   :id 1
+			   :modulus n
+			   :order (length elements)
+			   :cayley-table (make-cayley-table elements op)
+			   :binary-op-label (format nil "MOD*~a" n))))
 
 (defmethod print-object ((zg zgroup) stream)
   (print-unreadable-object (zg stream :type nil)
@@ -152,29 +165,36 @@ multiplicative residues group mod n."
 	mg
       (format stream "MG ~a ~a ~d ~a" order binary-op-label id elements))))
 
-(defun print-cayley-table (group &key (width 5))
+(defun print-cayley-table (group &key (width 3))
+  "Use this to display a group's Cayley table."
   (with-slots (binary-op cayley-table)
       group
     (display-table cayley-table :width width)))
 
 (defun make-subgroup (group elements)
+  "Constructor for subgroups. A subgroup is a more general object 
+so it is intantiated as a ZGROUP."
   (with-slots (binary-op id binary-op-label)
       group
     (make-zgroup elements binary-op id :binary-op-label binary-op-label)))
 
 (defun has-identity? (id elements)
+  "Is id among the elements?"
   (member id elements))
 
 (defun is-closed? (op elements)
+  "Every op-product of two elements must be in the element set."
   (loop for e in elements
 	always (loop for f in elements
 		     always (member (funcall op e f) elements))))
 
 (defun has-right-inverses? (op id elements)
+  "For every e in elements, there must be a unique f such that e*f=id."
   (loop for e in elements
 	always (= 1 (loop for f in elements counting (= id (funcall op e f))))))
 
 (defun is-subgroup? (op id elements)
+  "System is a subgroup if it has identity, closure, and inverses."
   (and (has-identity? id elements)
        (is-closed? op elements)
        (has-right-inverses? op id elements)))
@@ -193,11 +213,13 @@ multiplicative residues group mod n."
       result)))
 
 (defun mg-show (n &key (width 5))
+  "Create (Z/nZ)*, print its Cayley table, and return the instance."
   (let ((foo (make-mgroup n)))
     (print-cayley-table foo :width width)
     foo))
 
 (defun ag-show (n &key (width 5))
+  "Create Z/nZ, print its Cayley table, and return the instance."
   (let ((foo (make-agroup n)))
     (print-cayley-table foo :width width)
     foo))
@@ -205,7 +227,7 @@ multiplicative residues group mod n."
 ;; Tests ==================================================================
 
 (5am:def-suite integer-groups-test-suite
-  :description "Check how well multiplicative group theory functions work.")
+  :description "Check how well basic functions of integer-groups work.")
 
 (5am:in-suite integer-groups-test-suite)
 
@@ -234,7 +256,6 @@ multiplicative residues group mod n."
     (5am:is (= 6 (funcall mod7+ x y)))
     (5am:is (= 0 (funcall mod15+ x y)))))
 
-;; Just run this to run the tests.
-
 (defun do-integer-groups-tests ()
+  "Runs the FiveAM tests for integer-groups."
   (5am:run! 'integer-groups-test-suite))
