@@ -224,6 +224,43 @@ so it is intantiated as a ZGROUP."
     (print-cayley-table foo :width width)
     foo))
 
+(defgeneric left-coset (group element subset)
+  (:documentation "Pick an element a from group G. 
+Let H be a subset of G. Then the left coset is the set a*h for all h in H."))
+
+(defmethod left-coset ((group zgroup) (a integer) (subset list))
+  "Subset H, element a, left coset {a*h for all h in H}.
+a must be in G."
+  (assert (member a (elements group))
+	  (a)
+	  "element ~a is not in group ~a" a group)
+  (assert (subsetp subset (elements group))
+	  (subset)
+	  "set ~a is not a subset of ~a" subset group)
+  (sort (loop for h in subset collect (funcall (binary-op group) a h)) #'<))
+
+(defmethod left-coset ((group zgroup) (a integer) (subgroup zgroup))
+  "Subset H, element a, left coset {a*h for all h in H}.
+a must be in G."
+  (assert (member a (elements group))
+	  (a)
+	  "element ~a is not in group ~a" a group)
+  (assert (subsetp (elements subgroup) (elements group))
+	  (subgroup)
+	  "set ~a is not a subset of ~a" (elements subgroup) group)
+  (sort (loop for h in (elements subgroup) collect (funcall (binary-op group) a h)) #'<))
+
+
+
+
+;; Testing
+(defparameter g35 (make-mgroup 35))
+(defparameter h35 (make-subgroup g35 '(1 13 27 29)))
+
+
+
+
+
 ;; Tests ==================================================================
 
 (5am:def-suite integer-groups-test-suite
