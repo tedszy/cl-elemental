@@ -240,8 +240,8 @@ a must be in G."
   (sort (loop for h in subset collect (funcall (binary-op group) a h)) #'<))
 
 (defmethod left-coset ((group zgroup) (a integer) (subgroup zgroup))
-  "Subset H, element a, left coset {a*h for all h in H}.
-a must be in G."
+  "Calculate coset of subgroup H, but this time H really is a subgroup 
+and not just a subset."
   (assert (member a (elements group))
 	  (a)
 	  "element ~a is not in group ~a" a group)
