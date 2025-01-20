@@ -279,12 +279,13 @@ partitions the group G into equal-sized disjoint subsets."
 	  "set ~a is not a subgroup of ~a" subgroup group)
   (let ((result nil))
     (loop for a in (elements group)
-	  do (pushnew (sort
-		       (loop for h in subgroup
-			     collecting (group-op group a h))
-		       #'<)		    
-		   result
-		   :test #'equal))
+	  do (pushnew
+	      (sort
+	       (loop for h in subgroup
+		     collecting (group-op group a h))
+	       #'<)		    
+	      result
+	      :test #'equal))
     result))
 
 (defmethod left-coset-partition ((group zgroup) (subgroup zgroup))
@@ -298,49 +299,14 @@ partitions the group G into equal-sized disjoint subsets."
 	  "group ~a is not a subgroup of ~a" subgroup group)
   (let ((result nil))
     (loop for a in (elements group)
-	  do (pushnew (sort
-		       (loop for h in (elements subgroup)
-			     collecting (group-op group a h))
-		       #'<)		    
-		   result
-		   :test #'equal))
+	  do (pushnew
+	      (sort
+	       (loop for h in (elements subgroup)
+		     collecting (group-op group a h))
+	       #'<)		    
+	      result
+	      :test #'equal))
     result))
-
-
-
-
-
-
-;; Testing
-
-(defparameter g35 (make-mgroup 35))
-(defparameter h35 (make-subgroup g35 '(1 13 27 29)))
-(defparameter my-subset '(11 12 13 22 31))
-
-(defun property5 (a b) 
-  (list (left-coset g35 a h35)
-	(left-coset g35 b h35)))
-
-(defun property6 (a b)
-  (list (left-coset g35 a h35)
-	(left-coset g35 b h35)
-	(left-coset g35 (group-op g35 (group-inverse g35 a) b) h35)
-	(elements h35)))
-
-(defun property7 (a b c d e)
-  (mapcar #'(lambda (x) (left-coset g35 x h35))
-	  (list a b c d e)))
-
-(defun property9 (a)
-  (list (is-subgroup? (binary-op g35) (id g35) (left-coset g35 a h35))
-	a
-	(elements h35)))
-
-
-	  
-
-
-
 
 ;; Tests ==================================================================
 
@@ -374,6 +340,98 @@ partitions the group G into equal-sized disjoint subsets."
     (5am:is (= 6 (funcall mod7+ x y)))
     (5am:is (= 0 (funcall mod15+ x y)))))
 
+(5am:def-test coset-property-1 ()
+  "When H < G, a in G, a is always in aH."
+  (let* ((group-G (make-mgroup 55))
+	 (subgroup-H (make-subgroup group-G '(1 12 21 23 32 34 43 54))))
+    (5am:is (loop for a in (elements group-G)
+		  always (member a (left-coset group-G a subgroup-H))))))
+
+(5am:def-test coset-property-2 ()
+  "H < G, a in G, then a in H if and only if aH = H"
+  ;; Test a in H ==> aH=H
+  (let* ((group-G (make-mgroup 55))
+	 (a 23)
+	 (subgroup-H (make-subgroup group-G '(1 12 21 23 32 34 43 54)))
+	 (coset-aH (left-coset group-G a subgroup-H)))
+    (5am:is (equal coset-aH (elements subgroup-H)))))
+
+(5am:def-test coset-property-3 ()
+  "(ab)H = a(bH)"
+  (let* ((group-G (make-mgroup 65))
+	 (a 14)
+	 (b 41)
+	 (subgroup-H (make-subgroup group-G '(1 14 27 53))))
+    (5am:is (equal (left-coset group-G (group-op group-G a b) subgroup-H)
+		   (left-coset group-G a (left-coset group-G b subgroup-H))))))
+
+(5am:def-test coset-property-4 ()
+  "aH=bH if and only if a in bH or b in aH."
+  (let* ((group-G (make-mgroup 65))
+	 (subgroup-H (make-subgroup group-G '(1 9 14 16 29 61)))
+	 (a 17)
+	 (b 38)
+	 (coset-aH (left-coset group-G a subgroup-H))
+	 (coset-bH (left-coset group-G b subgroup-H)))
+    (5am:is (and (equal coset-aH coset-bH)
+		 (member a coset-bH)
+		 (member b coset-aH)))))
+
+(5am:def-test coset-property-5 ()
+  "Either aH=bH or aH intersect bH = empty."
+  (let* ((group-G (make-mgroup 65))
+	 (a1 17)
+	 (b1 38)
+	 (a2 11)
+	 (b2 54)
+	 (subgroup-H (make-subgroup group-G '(1 9 14 16 29 61))))
+    (5am:is (equal (left-coset group-G a1 subgroup-H)
+		   (left-coset group-G b1 subgroup-H)))
+    (5am:is (equal nil (intersection
+			(left-coset group-G a2 subgroup-H)
+			(left-coset group-G b2 subgroup-H))))))
+
+(5am:def-test coset-property-6 ()
+  "aH=bH if and only if inv(a)b is in H."
+  ;; Test inv(a)b in H ==> aH=bH.
+  (let* ((group-G (make-mgroup 58))
+	 (subgroup-H (make-subgroup group-G '(1 7 23 25 45 49 53)))
+	 ;; Note that neither a1 nor a2 are in subgroup-H
+	 (a1 11)
+	 (b1 31))
+    (flet ((foo (a b) (group-op g58 (group-inverse g58 a) b)))
+      (5am:is (member (foo a1 b1) (elements subgroup-H)))
+      (5am:is (equal (left-coset group-G a1 subgroup-H)
+		     (left-coset group-G b1 subgroup-H))))))
+
+(5am:def-test coset-property-7 ()
+  "|aH| = |bH|."
+  (let* ((group-G (make-mgroup 58))
+	 (subgroup-H (make-subgroup group-G '(1 7 23 25 45 49 53)) )
+	 (a1 19)
+	 (b1 49)
+	 (a2 3)
+	 (b2 39))
+    (5am:is (alexandria:length=
+	     (left-coset group-G a1 subgroup-H)
+	     (left-coset group-G b1 subgroup-H)))
+    (5am:is (alexandria:length=
+	     (left-coset group-G a2 subgroup-H)
+	     (left-coset group-G b2 subgroup-H)))))
+
+;; Coset property 8: aH=Ha iff H = aH*inv(a) is always true
+;; for integer groups because integer groups are abelian.
+
+(5am:def-test coset-property-9 ()
+  "H<G, a in G. aH<G if and only if a in H."
+  (let* ((group-G (make-mgroup 58))
+	 (subgroup-H (make-subgroup group-G '(1 7 23 25 45 49 53)))
+	 (a1 45)
+	 (a2 13))
+    (5am:is (is-subgroup? (binary-op group-G) 1 (left-coset g58 a1 subgroup-H)))
+    (5am:is (not (is-subgroup? (binary-op group-G) 1 (left-coset g58 a2 subgroup-H))))))
+
 (defun do-integer-groups-tests ()
   "Runs the FiveAM tests for integer-groups."
-  (5am:run! 'integer-groups-test-suite))
+  (5am:run! 'integer-groups-test-suite)
+  'done)
