@@ -308,9 +308,6 @@ partitions the group G into equal-sized disjoint subsets."
 	      :test #'equal))
     result))
 
-
-
-
 (defun group-expt (group a n)
   "a in group G, compute a^n."
   (let ((result (id group)))
@@ -318,18 +315,23 @@ partitions the group G into equal-sized disjoint subsets."
 	((> k n) result)
       (setf result (group-op group a result)))))
 
+(defun order-of-element (group a)
+  "Smallest exponent n such that a^n = id."
+  (do ((k 1 (1+ k))
+       (result a (group-op group a result)))
+      ((= result (id group)) k)))
 
 
 
-
-
+;; Table of inverses.
+;; Table of element orders.
 
 
 
 ;; Tests ==================================================================
 
 (5am:def-suite integer-groups-test-suite
-  :description "Check how well basic functions of integer-groups work.")
+  :description "Check how well INTEGER-GROUPS work.")
 
 (5am:in-suite integer-groups-test-suite)
 
@@ -449,8 +451,8 @@ partitions the group G into equal-sized disjoint subsets."
     (5am:is (is-subgroup? (binary-op group-G) 1 (left-coset g58 a1 subgroup-H)))
     (5am:is (not (is-subgroup? (binary-op group-G) 1 (left-coset g58 a2 subgroup-H))))))
 
-(5am:def-test element-order/exponents ()
-  "a in G, then a^|G| = id."
+(5am:def-test group-exponents/group-order ()
+  "When a in G, then a^|G| = id."
   (let* ((group-G (make-mgroup 75))
 	 (group-G2 (make-agroup 19)))
     (5am:is (loop for a in (elements group-G)
@@ -458,8 +460,14 @@ partitions the group G into equal-sized disjoint subsets."
     (5am:is (loop for a in (elements group-G2)
 		  always (= (id group-G2) (group-expt group-G2 a (order group-G2)))))))
 
-
-
+(5am:def-test order-of-elements ()
+  "order of a in G is smallest n such that a^n = id."
+  (let ((mg15 (make-mgroup 15))
+	(ag10 (make-agroup 10)))
+    (5am:is (= 4 (order-of-element mg15 7)))
+    (5am:is (= 2 (order-of-element mg15 11)))
+    (5am:is (= 5 (order-of-element ag10 2)))
+    (5am:is (= 1 (order-of-element ag10 0)))))
 
 
 (defun do-integer-groups-tests ()
