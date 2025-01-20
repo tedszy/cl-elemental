@@ -308,6 +308,24 @@ partitions the group G into equal-sized disjoint subsets."
 	      :test #'equal))
     result))
 
+
+
+
+(defun group-expt (group a n)
+  "a in group G, compute a^n."
+  (let ((result (id group)))
+    (do ((k 1 (1+ k)))
+	((> k n) result)
+      (setf result (group-op group a result)))))
+
+
+
+
+
+
+
+
+
 ;; Tests ==================================================================
 
 (5am:def-suite integer-groups-test-suite
@@ -430,6 +448,19 @@ partitions the group G into equal-sized disjoint subsets."
 	 (a2 13))
     (5am:is (is-subgroup? (binary-op group-G) 1 (left-coset g58 a1 subgroup-H)))
     (5am:is (not (is-subgroup? (binary-op group-G) 1 (left-coset g58 a2 subgroup-H))))))
+
+(5am:def-test element-order/exponents ()
+  "a in G, then a^|G| = id."
+  (let* ((group-G (make-mgroup 75))
+	 (group-G2 (make-agroup 19)))
+    (5am:is (loop for a in (elements group-G)
+		  always (= (id group-G) (group-expt group-G a (order group-G)))))
+    (5am:is (loop for a in (elements group-G2)
+		  always (= (id group-G2) (group-expt group-G2 a (order group-G2)))))))
+
+
+
+
 
 (defun do-integer-groups-tests ()
   "Runs the FiveAM tests for integer-groups."
