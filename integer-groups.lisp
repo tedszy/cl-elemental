@@ -250,13 +250,94 @@ and not just a subset."
 	  "set ~a is not a subset of ~a" (elements subgroup) group)
   (sort (loop for h in (elements subgroup) collect (funcall (binary-op group) a h)) #'<))
 
+(defun group-op (group a b)
+  "Apply the group binary operation to a, b."
+  (funcall (binary-op group) a b))
+
+(defun group-inverse (group a)
+  "Return the group inverse of element a."
+  (assert (member a (elements group))
+	  (a)
+	  "element ~a is not in group ~a" a group)
+  (loop for x in (elements group)
+	when (= (id group) (group-op group x a))
+	  return x))
+
+(defgeneric left-coset-partition (group subset)
+  (:documentation "Partition the group G elements into disjoint unique
+left-cosets of a subgroup. The subgroup can be specified as a list of
+elements (subset of G) or a ZG subgroup instance."))
+
+(defmethod left-coset-partition ((group zgroup) (subgroup list))
+  "Collect all the unique cosets of subgroup H. This collection 
+partitions the group G into equal-sized disjoint subsets."
+  (assert (subsetp subgroup (elements group))
+	  (subgroup)
+	  "set ~a is not a subset of ~a" subgroup group)
+  (assert (is-subgroup? (binary-op group) (id group) subgroup)
+	  (subgroup)
+	  "set ~a is not a subgroup of ~a" subgroup group)
+  (let ((result nil))
+    (loop for a in (elements group)
+	  do (pushnew (sort
+		       (loop for h in subgroup
+			     collecting (group-op group a h))
+		       #'<)		    
+		   result
+		   :test #'equal))
+    result))
+
+(defmethod left-coset-partition ((group zgroup) (subgroup zgroup))
+  "Collect all the unique cosets of subgroup H. This collection 
+partitions the group G into equal-sized disjoint subsets."
+  (assert (subsetp (elements subgroup) (elements group))
+	  (subgroup)
+	  "group ~a is not a subset of ~a" subgroup group)
+  (assert (is-subgroup? (binary-op group) (id group) (elements subgroup))
+	  (subgroup)
+	  "group ~a is not a subgroup of ~a" subgroup group)
+  (let ((result nil))
+    (loop for a in (elements group)
+	  do (pushnew (sort
+		       (loop for h in (elements subgroup)
+			     collecting (group-op group a h))
+		       #'<)		    
+		   result
+		   :test #'equal))
+    result))
+
+
+
 
 
 
 ;; Testing
+
 (defparameter g35 (make-mgroup 35))
 (defparameter h35 (make-subgroup g35 '(1 13 27 29)))
+(defparameter my-subset '(11 12 13 22 31))
 
+(defun property5 (a b) 
+  (list (left-coset g35 a h35)
+	(left-coset g35 b h35)))
+
+(defun property6 (a b)
+  (list (left-coset g35 a h35)
+	(left-coset g35 b h35)
+	(left-coset g35 (group-op g35 (group-inverse g35 a) b) h35)
+	(elements h35)))
+
+(defun property7 (a b c d e)
+  (mapcar #'(lambda (x) (left-coset g35 x h35))
+	  (list a b c d e)))
+
+(defun property9 (a)
+  (list (is-subgroup? (binary-op g35) (id g35) (left-coset g35 a h35))
+	a
+	(elements h35)))
+
+
+	  
 
 
 
